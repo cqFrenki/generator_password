@@ -1,0 +1,14 @@
+# мусор
+*.exe
+*.obj
+*.o
+passgen
+passgen-*
+
+# Visual Studio
+.vs/
+x64/
+Debug/
+Release/
+*.vcxproj*
+*.sln

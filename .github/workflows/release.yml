@@ -1,0 +1,41 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: passgen-linux-x64
+          - os: macos-latest
+            asset: passgen-macos-arm64
+          - os: windows-latest
+            asset: passgen-windows-x64.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - if: runner.os != 'Windows'
+        run: g++ -std=c++17 -O2 password_generator.cpp -o ${{ matrix.asset }}
+
+      - if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # /MT линкует рантайм статически, чтобы .exe работал без
+      # установленного Visual C++ Redistributable.
+      - if: runner.os == 'Windows'
+        run: cl /std:c++17 /O2 /EHsc /utf-8 /MT password_generator.cpp /Fe:${{ matrix.asset }}
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset }}
